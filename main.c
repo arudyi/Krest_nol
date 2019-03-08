@@ -989,11 +989,108 @@ int find_ver(t_elem *s_game, int i, int j)
 
 int find_dia_right(t_elem *s_game, int i, int j)
 {
+
+    short int searching_right;
+    short int searching_left;
+    short int k;
+    short int max;
+    short int is_space;
+
+    is_space = 0;
+    max = s_game->nbr_win - 1;
+    k = 0;
+    searching_right = 1;
+    searching_left = 1;
+    while (searching_right == 1 || searching_left == 1)
+    {
+        k++;
+        if ((i + k) >= s_game->width || (j + k) >= s_game->width)
+            searching_right = 0;
+        if ((i - k) < 0 || (j - k) < 0)
+            searching_left = 0;
+        if (searching_right == 1)
+        {
+            if (s_game->map[i + k][j + k] == s_game->logic->sym_now)
+                max--;
+            if (s_game->map[i + k][j + k] == ' ')
+            {
+                if ((i + k + 1) < s_game->width && (j + k + 1) < s_game->width && s_game->map[i + k][j + k] == ' ' && s_game->map[i + k + 1][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
+                    max--;
+                else
+                    searching_right = 0;
+            }
+            if (s_game->map[i + k][j + k] != s_game->logic->sym_now && s_game->map[i + k][j + k] != ' ')
+                searching_right = 0;
+        }
+        if (searching_left == 1)
+        {
+            if (s_game->map[i - k][j - k] == s_game->logic->sym_now)
+                max--;
+            if (s_game->map[i - k][j - k] == ' ')
+            {
+                if ((i - k - 1) >= 0 && (j - k - 1) >= 0 && s_game->map[i - k][j - k] == ' ' && s_game->map[i - k - 1][j - k - 1] == s_game->logic->sym_now && is_space++ == 0)
+                    max--;
+                else
+                    searching_right = 0;
+            }
+            if (s_game->map[i - k][j - k] != s_game->logic->sym_now && s_game->map[i - k][j - k] != ' ')
+                searching_right = 0;
+        }
+        ft_check_if_win_smaller(s_game, max, i, j, 2);
+    }
     return (0);
 }
 
 int find_gor_left(t_elem *s_game, int i, int j)
 {
+    short int searching_right;
+    short int searching_left;
+    short int k;
+    short int max;
+    short int is_space;
+
+    is_space = 0;
+    max = s_game->nbr_win - 1;
+    k = 0;
+    searching_right = 1;
+    searching_left = 1;
+    while (searching_right == 1 || searching_left == 1)
+    {
+        k++;
+        if ((i - k) < 0 || (j + k) >= s_game->width)
+            searching_right = 0;
+        if ((i + k) >= s_game->width || (j - k) < 0)
+            searching_left = 0;
+        if (searching_right == 1)
+        {
+            if (s_game->map[i - k][j + k] == s_game->logic->sym_now)
+                max--;
+            if (s_game->map[i - k][j + k] == ' ')
+            {
+                if ((i - k - 1) >= 0 && (j + k + 1) < s_game->width && s_game->map[i - k][j + k] == ' ' && s_game->map[i - k - 1][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
+                    max--;
+                else
+                    searching_right = 0;
+            }
+            if (s_game->map[i - k][j + k] != s_game->logic->sym_now && s_game->map[i - k][j + k] != ' ')
+                searching_right = 0;
+        }
+        if (searching_left == 1)
+        {
+            if (s_game->map[i - k][j + k] == s_game->logic->sym_now)
+                max--;
+            if (s_game->map[i - k][j + k] == ' ')
+            {
+                if ((i - k - 1) >= 0 && (j + k + 1) < s_game->width && s_game->map[i - k][j + k] == ' ' && s_game->map[i - k - 1][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
+                    max--;
+                else
+                    searching_right = 0;
+            }
+            if (s_game->map[i - k][j + k] != s_game->logic->sym_now && s_game->map[i - k][j + k] != ' ')
+                searching_right = 0;
+        }
+        ft_check_if_win_smaller(s_game, max, i, j, 3);
+    }
     return (0);
 }
 
@@ -1001,8 +1098,8 @@ int ft_find_max(t_elem *s_game, int i, int j)
 {
     find_gor(s_game, i, j);
     find_ver(s_game, i, j);
-    find_dia_right(s_game, i, j);
-    find_gor_left(s_game, i, j);
+    //find_dia_right(s_game, i, j);
+    //find_gor_left(s_game, i, j);
     return (0);
 }
 
