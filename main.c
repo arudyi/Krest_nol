@@ -887,9 +887,9 @@ int find_gor(t_elem *s_game, int i, int j)
     short int searching_left;
     short int k;
     short int max;
-    short int is_space;
+    short int is_dot;
 
-    is_space = 0;
+    is_dot = 0;
     max = s_game->nbr_win - 1;
     k = 0;
     searching_right = 1;
@@ -905,31 +905,41 @@ int find_gor(t_elem *s_game, int i, int j)
         {
             if (s_game->map[i][j + k] == s_game->logic->sym_now)
                 max--;
-            if (s_game->map[i][j + k] == ' ')
+            if (s_game->map[i][j + k] == '.')
             {
-                if ((j + k + 1) < s_game->width && s_game->map[i][j + k] == ' ' && s_game->map[i][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
+                if ((j + k + 1) < s_game->width && s_game->map[i][j + k] == '.' && s_game->map[i][j + k + 1] == s_game->logic->sym_now && is_dot == 0) //is_dot++;
+                    searching_right = 1;//max--;
                 else
                     searching_right = 0;
+                is_dot++;
             }
-            if (s_game->map[i][j + k] != s_game->logic->sym_now && s_game->map[i][j + k] != ' ')
+            if (s_game->map[i][j + k] != s_game->logic->sym_now && s_game->map[i][j + k] != '.')
                 searching_right = 0;
         }
         if (searching_left == 1)
         {
             if (s_game->map[i][j - k] == s_game->logic->sym_now)
                 max--;
-            if (s_game->map[i][j - k] == ' ')
+            if (s_game->map[i][j - k] == '.')
             {
-                if ((j - k - 1) >= 0 && s_game->map[i][j - k] == ' ' && s_game->map[i][j - k - 1] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
+                if ((j - k - 1) >= 0 && s_game->map[i][j - k] == '.' && s_game->map[i][j - k - 1] == s_game->logic->sym_now && is_dot == 0)
+                    searching_left = 1;//max--;
                 else
-                    searching_right = 0;
+                    searching_left = 0;
+                is_dot++;
             }
-            if (s_game->map[i][j - k] != s_game->logic->sym_now && s_game->map[i][j - k] != ' ')
-                searching_right = 0;
+            if (s_game->map[i][j - k] != s_game->logic->sym_now && s_game->map[i][j - k] != '.')
+                searching_left = 0;
         }
-        ft_check_if_win_smaller(s_game, max, i, j, 0);
+    }
+    if (is_dot > 0)
+    {
+        if (max == 1 && is_dot >= 1)
+            ft_check_if_win_smaller(s_game, max, i, j, 0);
+        if (max == 2 && is_dot >= 2)
+            ft_check_if_win_smaller(s_game, max, i, j, 0);
+        if (max == 3 && is_dot >= 3)
+            ft_check_if_win_smaller(s_game, max, i, j, 0);
     }
     return (0);
 }
@@ -940,9 +950,9 @@ int find_ver(t_elem *s_game, int i, int j)
     short int searching_left;
     short int k;
     short int max;
-    short int is_space;
+    short int is_dot;
 
-    is_space = 0;
+    is_dot = 0;
     max = s_game->nbr_win - 1;
     k = 0;
     searching_right = 1;
@@ -958,32 +968,35 @@ int find_ver(t_elem *s_game, int i, int j)
         {
             if (s_game->map[i + k][j] == s_game->logic->sym_now)
                 max--;
-            if (s_game->map[i + k][j] == ' ')
+            if (s_game->map[i + k][j] == '.')
             {
-                if ((i + k + 1) < s_game->width && s_game->map[i + k][j] == ' ' && s_game->map[i + k + 1][j] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
+                if ((i + k + 1) < s_game->width && s_game->map[i + k][j] == '.' && s_game->map[i + k + 1][j] == s_game->logic->sym_now && is_dot == 0)
+                    searching_right = 1;//max--;
                 else
                     searching_right = 0;
+                is_dot++;
             }
-            if (s_game->map[i + k][j] != s_game->logic->sym_now && s_game->map[i + k][j] != ' ')
+            if (s_game->map[i + k][j] != s_game->logic->sym_now && s_game->map[i + k][j] != '.')
                 searching_right = 0;
         }
         if (searching_left == 1)
         {
             if (s_game->map[i - k][j] == s_game->logic->sym_now)
                 max--;
-            if (s_game->map[i - k][j] == ' ')
+            if (s_game->map[i - k][j] == '.')
             {
-                if ((i - k - 1) >= 0 && s_game->map[i - k][j] == ' ' && s_game->map[i - k - 1][j] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
+                if ((i - k - 1) >= 0 && s_game->map[i - k][j] == '.' && s_game->map[i - k - 1][j] == s_game->logic->sym_now && is_dot == 0)
+                    searching_left = 1;//max--;
                 else
-                    searching_right = 0;
+                    searching_left = 0;
+                is_dot++;
             }
-            if (s_game->map[i - k][j] != s_game->logic->sym_now && s_game->map[i - k][j] != ' ')
-                searching_right = 0;
+            if (s_game->map[i - k][j] != s_game->logic->sym_now && s_game->map[i - k][j] != '.')
+                searching_left = 0;
         }
-        ft_check_if_win_smaller(s_game, max, i, j, 1);
     }
+    if (is_dot > 0)
+        ft_check_if_win_smaller(s_game, max, i, j, 1);
     return (0);
 }
 
