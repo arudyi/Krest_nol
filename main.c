@@ -1,4 +1,5 @@
 #include "game.h"
+#include <unistd.h>
 
 /*int ft_exit_error(void)
 {
@@ -12,6 +13,8 @@ void ft_map_to_screen(t_elem *s_game)
     int i;
     int j;
 
+    if (s_game->logic->pve_or_eve == 0)
+        sleep(2);
     i = 0;
     printf("  ");
     while (++i <= s_game->width)
@@ -188,12 +191,19 @@ void ft_first_move(t_elem *s_game)
 {
     s_game->krest->sym = 'X';
     s_game->nol->sym = 'O';
-    //s_game->who_first = 0 + rand() % 2;
-    s_game->logic->who_first = 1;
-    if (s_game->logic->who_first == 1) // bot
+    s_game->logic->who_first = /*0 + */rand() % 2;
+    //s_game->logic->who_first = 1;
+    if (s_game->logic->pve_or_eve == 1)
+    {
+        if (s_game->logic->who_first == 1) // bot
+            ft_get_info_bot(s_game);
+        else // player
+            ft_get_info_player(s_game);
+    }
+    if (s_game->logic->pve_or_eve == 0)
+    {
         ft_get_info_bot(s_game);
-    else // player
-        ft_get_info_player(s_game);
+    }
     ft_map_to_screen(s_game);
 }
 
@@ -856,27 +866,26 @@ int ft_bot_player_cant_win(t_elem *s_game, int i, int j)
 
 void ft_check_if_win_smaller(t_elem *s_game, int max, int i, int j, short int gor_ver_dia)
 {
-    if (max != s_game->nbr_win - 1)
+    if (s_game->logic->sym_now == s_game->krest->sym)
     {
-        if (s_game->logic->sym_now == s_game->krest->sym)
+        if (max < s_game->krest->max_to_win)
         {
-            if (max < s_game->krest->max_to_win)
-            {
-                s_game->krest->max_gor_ver_dia = gor_ver_dia;
-                s_game->krest->max_to_win = max;
-                s_game->krest->max_x = i;
-                s_game->krest->max_y = j;
-            }
+            s_game->krest->max_gor_ver_dia = gor_ver_dia;
+            s_game->krest->max_to_win = max;
+            s_game->krest->max_x = i;
+            s_game->krest->max_y = j;
+            printf("gor_ver_dia = %d, s_game->krest->max_x = %d, s_game->krest->max_y = %d\n", gor_ver_dia, s_game->krest->max_x, s_game->krest->max_y);
         }
-        else
+    }
+    else
+    {
+        if (max < s_game->nol->max_to_win)
         {
-            if (max < s_game->nol->max_to_win)
-            {
-                s_game->nol->max_gor_ver_dia = gor_ver_dia;
-                s_game->nol->max_to_win = max;
-                s_game->nol->max_x = i;
-                s_game->nol->max_y = j;
-            }
+            s_game->nol->max_gor_ver_dia = gor_ver_dia;
+            s_game->nol->max_to_win = max;
+            s_game->nol->max_x = i;
+            s_game->nol->max_y = j;
+            printf("gor_ver_dia = %d, s_game->nol->max_x = %d, s_game->nol->max_y = %d\n", gor_ver_dia, s_game->nol->max_x, s_game->nol->max_y);
         }
     }
 }
@@ -903,31 +912,19 @@ int find_gor(t_elem *s_game, int i, int j)
             searching_left = 0;
         if (searching_right == 1)
         {
-            if (s_game->map[i][j + k] == s_game->logic->sym_now)
+            if (s_game->map[i][j + k] == s_game->logic->sym_now && is_dot <= 1) // && is_dot <= 1
                 max--;
             if (s_game->map[i][j + k] == '.')
-            {
-                if ((j + k + 1) < s_game->width && s_game->map[i][j + k] == '.' && s_game->map[i][j + k + 1] == s_game->logic->sym_now && is_dot == 0) //is_dot++;
-                    searching_right = 1;//max--;
-                else
-                    searching_right = 0;
                 is_dot++;
-            }
             if (s_game->map[i][j + k] != s_game->logic->sym_now && s_game->map[i][j + k] != '.')
                 searching_right = 0;
         }
         if (searching_left == 1)
         {
-            if (s_game->map[i][j - k] == s_game->logic->sym_now)
+            if (s_game->map[i][j - k] == s_game->logic->sym_now && is_dot <= 1) // && is_dot <= 1
                 max--;
             if (s_game->map[i][j - k] == '.')
-            {
-                if ((j - k - 1) >= 0 && s_game->map[i][j - k] == '.' && s_game->map[i][j - k - 1] == s_game->logic->sym_now && is_dot == 0)
-                    searching_left = 1;//max--;
-                else
-                    searching_left = 0;
                 is_dot++;
-            }
             if (s_game->map[i][j - k] != s_game->logic->sym_now && s_game->map[i][j - k] != '.')
                 searching_left = 0;
         }
@@ -938,8 +935,8 @@ int find_gor(t_elem *s_game, int i, int j)
             ft_check_if_win_smaller(s_game, max, i, j, 0);
         if (max == 2 && is_dot >= 2)
             ft_check_if_win_smaller(s_game, max, i, j, 0);
-        if (max == 3 && is_dot >= 3)
-            ft_check_if_win_smaller(s_game, max, i, j, 0);
+        //if (max == 3 && is_dot >= 3)
+            //ft_check_if_win_smaller(s_game, max, i, j, 0);
     }
     return (0);
 }
@@ -966,37 +963,32 @@ int find_ver(t_elem *s_game, int i, int j)
             searching_left = 0;
         if (searching_right == 1)
         {
-            if (s_game->map[i + k][j] == s_game->logic->sym_now)
+            if (s_game->map[i + k][j] == s_game->logic->sym_now && is_dot <= 1) // && is_dot <= 1
                 max--;
             if (s_game->map[i + k][j] == '.')
-            {
-                if ((i + k + 1) < s_game->width && s_game->map[i + k][j] == '.' && s_game->map[i + k + 1][j] == s_game->logic->sym_now && is_dot == 0)
-                    searching_right = 1;//max--;
-                else
-                    searching_right = 0;
                 is_dot++;
-            }
             if (s_game->map[i + k][j] != s_game->logic->sym_now && s_game->map[i + k][j] != '.')
                 searching_right = 0;
         }
         if (searching_left == 1)
         {
-            if (s_game->map[i - k][j] == s_game->logic->sym_now)
+            if (s_game->map[i - k][j] == s_game->logic->sym_now && is_dot <= 1) // && is_dot <= 1
                 max--;
             if (s_game->map[i - k][j] == '.')
-            {
-                if ((i - k - 1) >= 0 && s_game->map[i - k][j] == '.' && s_game->map[i - k - 1][j] == s_game->logic->sym_now && is_dot == 0)
-                    searching_left = 1;//max--;
-                else
-                    searching_left = 0;
                 is_dot++;
-            }
             if (s_game->map[i - k][j] != s_game->logic->sym_now && s_game->map[i - k][j] != '.')
                 searching_left = 0;
         }
     }
     if (is_dot > 0)
-        ft_check_if_win_smaller(s_game, max, i, j, 1);
+    {
+        if (max == 1 && is_dot >= 1)
+            ft_check_if_win_smaller(s_game, max, i, j, 1);
+        if (max == 2 && is_dot >= 2)
+            ft_check_if_win_smaller(s_game, max, i, j, 1);
+        //if (max == 3 && is_dot >= 3)
+          //  ft_check_if_win_smaller(s_game, max, i, j, 1);
+    }
     return (0);
 }
 
@@ -1007,9 +999,9 @@ int find_dia_right(t_elem *s_game, int i, int j)
     short int searching_left;
     short int k;
     short int max;
-    short int is_space;
+    short int is_dot;
 
-    is_space = 0;
+    is_dot = 0;
     max = s_game->nbr_win - 1;
     k = 0;
     searching_right = 1;
@@ -1023,33 +1015,31 @@ int find_dia_right(t_elem *s_game, int i, int j)
             searching_left = 0;
         if (searching_right == 1)
         {
-            if (s_game->map[i + k][j + k] == s_game->logic->sym_now)
+            if (s_game->map[i + k][j + k] == s_game->logic->sym_now && is_dot <= 1)
                 max--;
-            if (s_game->map[i + k][j + k] == ' ')
-            {
-                if ((i + k + 1) < s_game->width && (j + k + 1) < s_game->width && s_game->map[i + k][j + k] == ' ' && s_game->map[i + k + 1][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
-                else
-                    searching_right = 0;
-            }
-            if (s_game->map[i + k][j + k] != s_game->logic->sym_now && s_game->map[i + k][j + k] != ' ')
+            if (s_game->map[i + k][j + k] == '.')
+                is_dot++;
+            if (s_game->map[i + k][j + k] != s_game->logic->sym_now && s_game->map[i + k][j + k] != '.')
                 searching_right = 0;
         }
         if (searching_left == 1)
         {
-            if (s_game->map[i - k][j - k] == s_game->logic->sym_now)
+            if (s_game->map[i - k][j - k] == s_game->logic->sym_now && is_dot <= 1)
                 max--;
-            if (s_game->map[i - k][j - k] == ' ')
-            {
-                if ((i - k - 1) >= 0 && (j - k - 1) >= 0 && s_game->map[i - k][j - k] == ' ' && s_game->map[i - k - 1][j - k - 1] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
-                else
-                    searching_right = 0;
-            }
-            if (s_game->map[i - k][j - k] != s_game->logic->sym_now && s_game->map[i - k][j - k] != ' ')
-                searching_right = 0;
+            if (s_game->map[i - k][j - k] == '.')
+                is_dot++;
+            if (s_game->map[i - k][j - k] != s_game->logic->sym_now && s_game->map[i - k][j - k] != '.')
+                searching_left = 0;
         }
-        ft_check_if_win_smaller(s_game, max, i, j, 2);
+    }
+    if (is_dot > 0)
+    {
+        if (max == 1 && is_dot >= 1)
+            ft_check_if_win_smaller(s_game, max, i, j, 2);
+        if (max == 2 && is_dot >= 2)
+            ft_check_if_win_smaller(s_game, max, i, j, 2);
+        //if (max == 3 && is_dot >= 3)
+          //  ft_check_if_win_smaller(s_game, max, i, j, 2);
     }
     return (0);
 }
@@ -1060,9 +1050,9 @@ int find_gor_left(t_elem *s_game, int i, int j)
     short int searching_left;
     short int k;
     short int max;
-    short int is_space;
+    short int is_dot;
 
-    is_space = 0;
+    is_dot = 0;
     max = s_game->nbr_win - 1;
     k = 0;
     searching_right = 1;
@@ -1076,33 +1066,31 @@ int find_gor_left(t_elem *s_game, int i, int j)
             searching_left = 0;
         if (searching_right == 1)
         {
-            if (s_game->map[i - k][j + k] == s_game->logic->sym_now)
+            if (s_game->map[i - k][j + k] == s_game->logic->sym_now && is_dot <= 1)
                 max--;
-            if (s_game->map[i - k][j + k] == ' ')
-            {
-                if ((i - k - 1) >= 0 && (j + k + 1) < s_game->width && s_game->map[i - k][j + k] == ' ' && s_game->map[i - k - 1][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
-                else
-                    searching_right = 0;
-            }
-            if (s_game->map[i - k][j + k] != s_game->logic->sym_now && s_game->map[i - k][j + k] != ' ')
+            if (s_game->map[i - k][j + k] == '.')
+                is_dot++;
+            if (s_game->map[i - k][j + k] != s_game->logic->sym_now && s_game->map[i - k][j + k] != '.')
                 searching_right = 0;
         }
         if (searching_left == 1)
         {
-            if (s_game->map[i - k][j + k] == s_game->logic->sym_now)
+            if (s_game->map[i + k][j - k] == s_game->logic->sym_now && is_dot <= 1)
                 max--;
-            if (s_game->map[i - k][j + k] == ' ')
-            {
-                if ((i - k - 1) >= 0 && (j + k + 1) < s_game->width && s_game->map[i - k][j + k] == ' ' && s_game->map[i - k - 1][j + k + 1] == s_game->logic->sym_now && is_space++ == 0)
-                    max--;
-                else
-                    searching_right = 0;
-            }
-            if (s_game->map[i - k][j + k] != s_game->logic->sym_now && s_game->map[i - k][j + k] != ' ')
-                searching_right = 0;
+            if (s_game->map[i + k][j - k] == '.')
+                is_dot++;
+            if (s_game->map[i + k][j - k] != s_game->logic->sym_now && s_game->map[i + k][j - k] != '.')
+                searching_left = 0;
         }
-        ft_check_if_win_smaller(s_game, max, i, j, 3);
+    }
+    if (is_dot > 0)
+    {
+        if (max == 1 && is_dot >= 1)
+            ft_check_if_win_smaller(s_game, max, i, j, 3);
+        if (max == 2 && is_dot >= 2)
+            ft_check_if_win_smaller(s_game, max, i, j, 3);
+        //if (max == 3 && is_dot >= 3)
+          //  ft_check_if_win_smaller(s_game, max, i, j, 3);
     }
     return (0);
 }
@@ -1111,8 +1099,8 @@ int ft_find_max(t_elem *s_game, int i, int j)
 {
     find_gor(s_game, i, j);
     find_ver(s_game, i, j);
-    //find_dia_right(s_game, i, j);
-    //find_gor_left(s_game, i, j);
+    find_dia_right(s_game, i, j);
+    find_gor_left(s_game, i, j);
     return (0);
 }
 
@@ -1143,13 +1131,241 @@ int ft_find_max_to_win_player_bot(t_elem *s_game, int i, int j)
                 ft_find_max(s_game, i, j);
         }
     }
-    printf("s_game->krest->max_to_win = %d, s_game->nol->max_to_win = %d\n", s_game->krest->max_to_win, s_game->nol->max_to_win);
     return (0);
+}
+
+int ft_bot_interrupt_gor(t_elem *s_game, int i, int j)
+{
+    short int k;
+    short int searching_right;
+    short int searching_left;
+
+    searching_left = 1;
+    searching_right = 1;
+    k = 0;
+    s_game->logic->sym_now = (s_game->krest->player_or_bot == 1) ? s_game->krest->sym : s_game->nol->sym;
+    if (s_game->logic->bot_mode == 1)
+        s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
+    i = (s_game->logic->sym_now == 'X') ? s_game->krest->max_x : s_game->nol->max_x;
+    j = (s_game->logic->sym_now == 'X') ? s_game->krest->max_y : s_game->nol->max_y;
+    printf("gor i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
+    while (searching_left == 1 || searching_right == 1)
+    {
+        k++;
+        if ((j + k) < s_game->width && s_game->map[i][j + k] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i][j + k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i][j + k] = s_game->logic->sym_now;
+            break ;
+        }
+        if ((j - k) >= 0 && s_game->map[i][j - k] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i][j - k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i][j - k] = s_game->logic->sym_now;
+            break ;
+        }
+    }
+    return (0);
+}
+
+int ft_bot_interrupt_ver(t_elem *s_game, int i, int j)
+{
+    short int k;
+    short int searching_right;
+    short int searching_left;
+
+    searching_left = 1;
+    searching_right = 1;
+    k = 0;
+    s_game->logic->sym_now = (s_game->krest->player_or_bot == 1) ? s_game->krest->sym : s_game->nol->sym;
+    if (s_game->logic->bot_mode == 1)
+        s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
+    i = (s_game->logic->sym_now == 'X') ? s_game->krest->max_x : s_game->nol->max_x;
+    j = (s_game->logic->sym_now == 'X') ? s_game->krest->max_y : s_game->nol->max_y;
+    printf("ver i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
+    while (searching_left == 1 || searching_right == 1)
+    {
+        k++;
+        if ((i + k) < s_game->width && s_game->map[i + k][j] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i + k][j] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i + k][j] = s_game->logic->sym_now;
+            break ;
+        }
+        if ((i - k) >= 0 && s_game->map[i - k][j] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i - k][j] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i - k][j] = s_game->logic->sym_now;
+            break ;
+        }
+    }
+    return (0);
+}
+
+int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j)
+{
+    short int k;
+    short int searching_right;
+    short int searching_left;
+
+    searching_left = 1;
+    searching_right = 1;
+    k = 0;
+    s_game->logic->sym_now = (s_game->krest->player_or_bot == 1) ? s_game->krest->sym : s_game->nol->sym;
+    if (s_game->logic->bot_mode == 1)
+        s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
+    i = (s_game->logic->sym_now == 'X') ? s_game->krest->max_x : s_game->nol->max_x;
+    j = (s_game->logic->sym_now == 'X') ? s_game->krest->max_y : s_game->nol->max_y;
+    printf("right i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
+    while (searching_left == 1 || searching_right == 1)
+    {
+        k++;
+        if ((i + k) < s_game->width && (j + k) < s_game->width && s_game->map[i + k][j + k] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i + k][j + k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i + k][j + k] = s_game->logic->sym_now;
+            break ;
+        }
+        if ((i - k) >= 0 && (j - k) >= 0 && s_game->map[i - k][j - k] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i - k][j - k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i - k][j - k] = s_game->logic->sym_now;
+            break ;
+        }
+    }
+    return (0);
+}
+
+int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j)
+{
+    short int k;
+    short int searching_right;
+    short int searching_left;
+
+    searching_left = 1;
+    searching_right = 1;
+    k = 0;
+    s_game->logic->sym_now = (s_game->krest->player_or_bot == 1) ? s_game->krest->sym : s_game->nol->sym;
+    if (s_game->logic->bot_mode == 1)
+        s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
+    i = (s_game->krest->player_or_bot == 1) ? s_game->krest->max_x : s_game->nol->max_x;
+    j = (s_game->krest->player_or_bot == 1) ? s_game->krest->max_y : s_game->nol->max_y;
+    printf("left i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
+    while (searching_left == 1 || searching_right == 1)
+    {
+        k++;
+        if ((i - k) >= 0 && (j + k) < s_game->width && s_game->map[i - k][j + k] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i - k][j + k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i - k][j + k] = s_game->logic->sym_now;
+            break ;
+        }
+        if ((i + k) < s_game->width && (j - k) >= 0 && s_game->map[i + k][j - k] == '.')
+        {
+            if (s_game->logic->bot_mode == 0)
+                s_game->map[i + k][j - k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
+            if (s_game->logic->bot_mode == 1)
+                s_game->map[i + k][j - k] = s_game->logic->sym_now;
+            break ;
+        }
+    }
+    return (0);
+}
+
+int ft_bot_interrupt_player(t_elem *s_game)
+{
+    if (s_game->krest->player_or_bot == 1)
+    {
+        //printf("s_game->krest->max_gor_ver_dia = %d\n", s_game->krest->max_gor_ver_dia);
+        if (s_game->krest->max_gor_ver_dia == 0)
+            ft_bot_interrupt_gor(s_game, -1, -1);
+        if (s_game->krest->max_gor_ver_dia == 1)
+            ft_bot_interrupt_ver(s_game, -1, -1);
+        if (s_game->krest->max_gor_ver_dia == 2)
+            ft_bot_interrupt_dia_right(s_game, -1, -1);
+        if (s_game->krest->max_gor_ver_dia == 3)
+            ft_bot_interrupt_dia_left(s_game, -1, -1);
+    }
+    else
+    {
+        //printf("s_game->nol->max_gor_ver_dia = %d\n", s_game->nol->max_gor_ver_dia);
+        if (s_game->nol->max_gor_ver_dia == 0)
+            ft_bot_interrupt_gor(s_game, -1, -1);
+        if (s_game->nol->max_gor_ver_dia == 1)
+            ft_bot_interrupt_ver(s_game, -1, -1);
+        if (s_game->nol->max_gor_ver_dia == 2)
+            ft_bot_interrupt_dia_right(s_game, -1, -1);
+        if (s_game->nol->max_gor_ver_dia == 3)
+            ft_bot_interrupt_dia_left(s_game, -1, -1);
+    }
+    return (0);
+}
+
+void ft_player_interrupt(t_elem *s_game)
+{
+    if (s_game->krest->player_or_bot == 0)////////////////// 0
+    {
+        //printf("s_game->krest->max_gor_ver_dia = %d\n", s_game->krest->max_gor_ver_dia);
+        if (s_game->krest->max_gor_ver_dia == 0)
+            ft_bot_interrupt_gor(s_game, -1, -1);
+        if (s_game->krest->max_gor_ver_dia == 1)
+            ft_bot_interrupt_ver(s_game, -1, -1);
+        if (s_game->krest->max_gor_ver_dia == 2)
+            ft_bot_interrupt_dia_right(s_game, -1, -1);
+        if (s_game->krest->max_gor_ver_dia == 3)
+            ft_bot_interrupt_dia_left(s_game, -1, -1);
+    }
+    else
+    {
+        //printf("s_game->nol->max_gor_ver_dia = %d\n", s_game->nol->max_gor_ver_dia);
+        if (s_game->nol->max_gor_ver_dia == 0)
+            ft_bot_interrupt_gor(s_game, -1, -1);
+        if (s_game->nol->max_gor_ver_dia == 1)
+            ft_bot_interrupt_ver(s_game, -1, -1);
+        if (s_game->nol->max_gor_ver_dia == 2)
+            ft_bot_interrupt_dia_right(s_game, -1, -1);
+        if (s_game->nol->max_gor_ver_dia == 3)
+            ft_bot_interrupt_dia_left(s_game, -1, -1);
+    }
 }
 
 int ft_bot_find_player_best_put(t_elem *s_game)
 {
+    short int max_player;
+    short int max_bot;
+
     ft_find_max_to_win_player_bot(s_game, -1, -1);
+    printf("s_game->krest->max_to_win = %d, s_game->nol->max_to_win = %d\n", s_game->krest->max_to_win, s_game->nol->max_to_win);
+    max_player = (s_game->krest->player_or_bot == 1) ? s_game->krest->max_to_win : s_game->nol->max_to_win;
+    max_bot = (s_game->krest->player_or_bot == 0) ? s_game->krest->max_to_win : s_game->nol->max_to_win;
+    if (max_player < max_bot)//////////////////////////////////////////////////////
+    {
+        s_game->logic->bot_mode = 0;
+        printf("HI THERE1\n");
+        ft_bot_interrupt_player(s_game);
+        s_game->logic->move = 1;
+    }/////////////////////////////////////////////////////////////////////////////
+    if (s_game->logic->move == 0 && max_bot < 3)
+    {
+        printf("HI THERE2\n");
+        s_game->logic->bot_mode = 1;
+        ft_player_interrupt(s_game);
+        s_game->logic->move = 1;
+    }
     return (0);
 }
 
@@ -1360,28 +1576,25 @@ int ft_bot_last_move(t_elem *s_game, int i, int j)
             j = -1;
             while (++j < s_game->height)
             {
-                if (s_game->map[i][j] == s_game->logic->sym_now)
+                if ((j + 1) < s_game->width && s_game->map[i][j + 1] == '.')
                 {
-                    if ((j + 1) < s_game->width && s_game->map[i][j + 1] == '.')
-                    {
-                        s_game->map[i][j + 1] = s_game->logic->sym_now;
-                        s_game->logic->move = 1;
-                    }
-                    else if ((j - 1) >= 0 && s_game->map[i][j - 1] == '.' && s_game->logic->move == 0)
-                    {
-                        s_game->map[i][j - 1] = s_game->logic->sym_now;
-                        s_game->logic->move = 1;
-                    }
-                    else if ((i + 1) < s_game->width && s_game->map[i + 1][j] == '.' && s_game->logic->move == 0)
-                    {
-                        s_game->map[i + 1][j] = s_game->logic->sym_now;
-                        s_game->logic->move = 1;
-                    }
-                    else if ((i - 1) >= 0 && s_game->map[i - 1][j] == '.' && s_game->logic->move == 0)
-                    {
-                        s_game->map[i - 1][j] = s_game->logic->sym_now;
-                        s_game->logic->move = 1;
-                    }
+                    s_game->map[i][j + 1] = s_game->logic->sym_now;
+                    s_game->logic->move = 1;
+                }
+                else if ((j - 1) >= 0 && s_game->map[i][j - 1] == '.' && s_game->logic->move == 0)
+                {
+                    s_game->map[i][j - 1] = s_game->logic->sym_now;
+                    s_game->logic->move = 1;
+                }
+                else if ((i + 1) < s_game->width && s_game->map[i + 1][j] == '.' && s_game->logic->move == 0)
+                {
+                    s_game->map[i + 1][j] = s_game->logic->sym_now;
+                    s_game->logic->move = 1;
+                }
+                else if ((i - 1) >= 0 && s_game->map[i - 1][j] == '.' && s_game->logic->move == 0)
+                {
+                    s_game->map[i - 1][j] = s_game->logic->sym_now;
+                    s_game->logic->move = 1;
                 }
                 if (s_game->logic->move == 1)
                     break ;
@@ -1398,13 +1611,17 @@ int ft_get_pos_bot(t_elem *s_game)
     s_game->logic->move = 0;
     s_game->logic->bot_search_pla_pos = 0;
     ft_bot_can_win(s_game, -1, -1);
-    s_game->logic->move = 0;
+    //s_game->logic->move = 0;
     s_game->logic->bot_search_pla_pos = 1;
     ft_bot_player_cant_win(s_game, -1, -1);
     if (s_game->logic->move == 0)
+    {
         ft_bot_find_player_best_put(s_game);
+    }
     if (s_game->logic->move == 0)
+    {
         ft_bot_last_move(s_game, -1, -1);
+    }
     return (0);
 }
 
@@ -1420,7 +1637,8 @@ int ft_start_game(t_elem *s_game)
 {
     ft_first_move(s_game);
     s_game->run_game = 1;
-    while (s_game->run_game)
+    //printf("s_game->logic->who_first = %d\n", s_game->logic->who_first);
+    while (s_game->run_game && s_game->logic->pve_or_eve == 1)
     {
         if (s_game->logic->who_first == 1)
         {
@@ -1429,8 +1647,21 @@ int ft_start_game(t_elem *s_game)
         }
         else
         {
-           ft_move_bot(s_game);
-           ft_move_player(s_game);
+            ft_move_bot(s_game);
+            ft_move_player(s_game);
+        }
+    }
+    while (s_game->run_game && s_game->logic->pve_or_eve == 0)
+    {
+        if (s_game->logic->who_first == 1)
+        {
+            ft_move_bot(s_game);
+            ft_move_bot(s_game);
+        }
+        else
+        {
+            ft_move_bot(s_game);
+            ft_move_bot(s_game);
         }
     }
     return (0);
@@ -1451,6 +1682,7 @@ int main(void)
         exit(0);
     /*if (ac != 3)
         return (ft_exit_error());*/
+    s_game->logic->pve_or_eve = 0; // pve = 0 // eve = 1
     s_game->width = 8;
     s_game->height = 8;
     s_game->nbr_win = 4;

@@ -3,7 +3,6 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <time.h>
-
 typedef struct		s_krest
 {
     short int       player_or_bot;// 1 = player // 0 = bot
@@ -40,6 +39,8 @@ typedef struct		s_logic
     short int       move;
     char            sym_now;
     short int       who_first;
+    short int       bot_mode;
+    short int       pve_or_eve;
 }					t_logic_game;
 
 typedef struct		s_elem
@@ -67,4 +68,10 @@ int    ft_check_bot_win_ver(t_elem *s_game, int i, int j, int nbr_win);
 int    ft_check_bot_win_dia(t_elem *s_game, int i, int j, int nbr_win);
 int ft_bot_find_player_best_put(t_elem *s_game);
 int ft_bot_last_move(t_elem *s_game, int i, int j);
+int ft_bot_interrupt_player(t_elem *s_game);
+int ft_bot_interrupt_gor(t_elem *s_game, int i, int j);
+int ft_bot_interrupt_ver(t_elem *s_game, int i, int j);
+int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j);
+int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j);
+void ft_player_interrupt(t_elem *s_game);
 #endif
