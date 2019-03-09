@@ -14,7 +14,7 @@ void ft_map_to_screen(t_elem *s_game)
     int j;
 
     if (s_game->logic->pve_or_eve == 0)
-        sleep(2);
+        usleep(1000000); // sleep(1);
     i = 0;
     printf("  ");
     while (++i <= s_game->width)
@@ -51,7 +51,7 @@ int ft_get_y_pos_player(t_elem *s_game)
     int coor;
     char tmp_coor[9];
 
-    printf("please make a move choosing Y from 1 to %d or press 3 to exit\n", s_game->height);
+    printf("please make a move choosing Y from 1 to %d or type exit\n", s_game->height);
     fgets(tmp_coor, sizeof(tmp_coor), stdin);
     coor = ft_validate_input(s_game, tmp_coor, -1);
     if (coor <= 0 || coor > s_game->height)
@@ -73,6 +73,8 @@ int ft_validate_input(t_elem *s_game, char *tmp_coor, int i)
     int nbr;
 
     nbr = 0;
+    if (strcmp(tmp_coor, "exit\n") == 0)
+        exit(1);
     while (tmp_coor[++i] != '\n')
     {
         if (48 <= tmp_coor[i] && tmp_coor[i] <= 57)
@@ -90,7 +92,7 @@ int ft_get_x_pos_player(t_elem *s_game)
     int coor;
     char tmp_coor[9];
 
-    printf("please make a move choosing X from 1 to %d or press 3 to exit\n", s_game->width);
+    printf("please make a move choosing X from 1 to %d or type exit\n", s_game->width);
     fgets(tmp_coor, sizeof(tmp_coor), stdin);
     coor = ft_validate_input(s_game, tmp_coor, -1);
     if (coor <= 0 || coor > s_game->width)
@@ -112,6 +114,8 @@ int ft_validate_sym(char *sym, int i)
     int nbr;
 
     nbr = 0;
+    if (strcmp(sym, "exit\n") == 0)
+        exit(1);
     while (sym[++i] != '\n')
     {
         if (48 <= sym[i] && sym[i] <= 57)
@@ -126,11 +130,11 @@ int ft_validate_sym(char *sym, int i)
 
 int ft_get_info_player(t_elem *s_game)
 {
-    char sym[3];
+    char sym[6];
     int tmp_sym;
 
     ft_map_to_screen(s_game);
-    printf("please 1 to choose X or 2 to choose O or press 3 to exit\n");
+    printf("please 1 to choose X or 2 to choose O or type exit\n");
     fgets(sym, sizeof(sym), stdin);
     tmp_sym = ft_validate_sym(sym, -1);
     if (tmp_sym <= 0 || tmp_sym > 3)
@@ -816,7 +820,7 @@ int ft_bot_can_win(t_elem *s_game, int i, int j)
         j = -1;
         while (++j < s_game->height)
         {
-            if (s_game->map[i][j] == s_game->logic->sym_now) //s_game->map[i][j] != '.' && 
+            if (s_game->map[i][j] == s_game->logic->sym_now)
                 ft_check_bot_win(s_game, i, j);
         }
     }
@@ -825,13 +829,10 @@ int ft_bot_can_win(t_elem *s_game, int i, int j)
 
 int ft_check_bot_player_cant_win(t_elem *s_game, int i, int j)
 {
-    //printf("HI\n");
     if (s_game->logic->move == 0)
         ft_check_bot_win_gor(s_game, i, j, 0);
-    //printf("HI\n");
     if (s_game->logic->move == 0)
         ft_check_bot_win_ver(s_game, i, j, 0);
-    //printf("HI\n");
     if (s_game->logic->move == 0)
         ft_check_bot_win_dia_right(s_game, i, j, 0);
     if (s_game->logic->move == 0)
@@ -874,7 +875,6 @@ void ft_check_if_win_smaller(t_elem *s_game, int max, int i, int j, short int go
             s_game->krest->max_to_win = max;
             s_game->krest->max_x = i;
             s_game->krest->max_y = j;
-            printf("gor_ver_dia = %d, s_game->krest->max_x = %d, s_game->krest->max_y = %d\n", gor_ver_dia, s_game->krest->max_x, s_game->krest->max_y);
         }
     }
     else
@@ -885,7 +885,6 @@ void ft_check_if_win_smaller(t_elem *s_game, int max, int i, int j, short int go
             s_game->nol->max_to_win = max;
             s_game->nol->max_x = i;
             s_game->nol->max_y = j;
-            printf("gor_ver_dia = %d, s_game->nol->max_x = %d, s_game->nol->max_y = %d\n", gor_ver_dia, s_game->nol->max_x, s_game->nol->max_y);
         }
     }
 }
@@ -1038,8 +1037,6 @@ int find_dia_right(t_elem *s_game, int i, int j)
             ft_check_if_win_smaller(s_game, max, i, j, 2);
         if (max == 2 && is_dot >= 2)
             ft_check_if_win_smaller(s_game, max, i, j, 2);
-        //if (max == 3 && is_dot >= 3)
-          //  ft_check_if_win_smaller(s_game, max, i, j, 2);
     }
     return (0);
 }
@@ -1089,8 +1086,6 @@ int find_gor_left(t_elem *s_game, int i, int j)
             ft_check_if_win_smaller(s_game, max, i, j, 3);
         if (max == 2 && is_dot >= 2)
             ft_check_if_win_smaller(s_game, max, i, j, 3);
-        //if (max == 3 && is_dot >= 3)
-          //  ft_check_if_win_smaller(s_game, max, i, j, 3);
     }
     return (0);
 }
@@ -1110,6 +1105,7 @@ int ft_find_max_to_win_player_bot(t_elem *s_game, int i, int j)
     s_game->krest->max_to_win = 3;
     s_game->nol->max_to_win = 3;
     s_game->logic->sym_now = (s_game->krest->player_or_bot == 1) ? s_game->krest->sym : s_game->nol->sym;
+    //printf("s_game->logic->sym_now1 = %c\n", s_game->logic->sym_now);
     while (++i < s_game->width)
     {
         j = -1;
@@ -1121,6 +1117,7 @@ int ft_find_max_to_win_player_bot(t_elem *s_game, int i, int j)
     }
     //find_max_to_win_bot;
     s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
+    //printf("s_game->logic->sym_now2 = %c\n", s_game->logic->sym_now);
     i = -1;
     while (++i < s_game->width)
     {
@@ -1148,7 +1145,6 @@ int ft_bot_interrupt_gor(t_elem *s_game, int i, int j)
         s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
     i = (s_game->logic->sym_now == 'X') ? s_game->krest->max_x : s_game->nol->max_x;
     j = (s_game->logic->sym_now == 'X') ? s_game->krest->max_y : s_game->nol->max_y;
-    printf("gor i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
@@ -1186,7 +1182,6 @@ int ft_bot_interrupt_ver(t_elem *s_game, int i, int j)
         s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
     i = (s_game->logic->sym_now == 'X') ? s_game->krest->max_x : s_game->nol->max_x;
     j = (s_game->logic->sym_now == 'X') ? s_game->krest->max_y : s_game->nol->max_y;
-    printf("ver i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
@@ -1224,7 +1219,6 @@ int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j)
         s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
     i = (s_game->logic->sym_now == 'X') ? s_game->krest->max_x : s_game->nol->max_x;
     j = (s_game->logic->sym_now == 'X') ? s_game->krest->max_y : s_game->nol->max_y;
-    printf("right i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
@@ -1262,7 +1256,6 @@ int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j)
         s_game->logic->sym_now = (s_game->krest->player_or_bot == 0) ? s_game->krest->sym : s_game->nol->sym;
     i = (s_game->krest->player_or_bot == 1) ? s_game->krest->max_x : s_game->nol->max_x;
     j = (s_game->krest->player_or_bot == 1) ? s_game->krest->max_y : s_game->nol->max_y;
-    printf("left i = %d, j = %d, s_game->logic->sym_now = %c\n", i, j, s_game->logic->sym_now);
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
@@ -1349,19 +1342,17 @@ int ft_bot_find_player_best_put(t_elem *s_game)
     short int max_bot;
 
     ft_find_max_to_win_player_bot(s_game, -1, -1);
-    printf("s_game->krest->max_to_win = %d, s_game->nol->max_to_win = %d\n", s_game->krest->max_to_win, s_game->nol->max_to_win);
     max_player = (s_game->krest->player_or_bot == 1) ? s_game->krest->max_to_win : s_game->nol->max_to_win;
     max_bot = (s_game->krest->player_or_bot == 0) ? s_game->krest->max_to_win : s_game->nol->max_to_win;
-    if (max_player < max_bot)//////////////////////////////////////////////////////
+    //printf("s_game->krest->max_to_win = %d, s_game->nol->max_to_win = %d\n",s_game->krest->max_to_win, s_game->nol->max_to_win);
+    if (max_player < max_bot)
     {
         s_game->logic->bot_mode = 0;
-        printf("HI THERE1\n");
         ft_bot_interrupt_player(s_game);
         s_game->logic->move = 1;
-    }/////////////////////////////////////////////////////////////////////////////
+    }
     if (s_game->logic->move == 0 && max_bot < 3)
     {
-        printf("HI THERE2\n");
         s_game->logic->bot_mode = 1;
         ft_player_interrupt(s_game);
         s_game->logic->move = 1;
@@ -1610,16 +1601,25 @@ int ft_get_pos_bot(t_elem *s_game)
 {
     s_game->logic->move = 0;
     s_game->logic->bot_search_pla_pos = 0;
-    ft_bot_can_win(s_game, -1, -1);
-    //s_game->logic->move = 0;
-    s_game->logic->bot_search_pla_pos = 1;
-    ft_bot_player_cant_win(s_game, -1, -1);
     if (s_game->logic->move == 0)
     {
+        printf("HI 1\n");
+        ft_bot_can_win(s_game, -1, -1);
+    }
+    s_game->logic->bot_search_pla_pos = 1;
+    if (s_game->logic->move == 0)
+    {
+        printf("HI 2\n");
+        ft_bot_player_cant_win(s_game, -1, -1);
+    }
+    if (s_game->logic->move == 0)
+    {
+        printf("HI 3\n");
         ft_bot_find_player_best_put(s_game);
     }
     if (s_game->logic->move == 0)
     {
+        printf("HI 4\n");
         ft_bot_last_move(s_game, -1, -1);
     }
     return (0);
@@ -1682,7 +1682,7 @@ int main(void)
         exit(0);
     /*if (ac != 3)
         return (ft_exit_error());*/
-    s_game->logic->pve_or_eve = 0; // pve = 0 // eve = 1
+    s_game->logic->pve_or_eve = 1; // pve = 0 // eve = 1
     s_game->width = 8;
     s_game->height = 8;
     s_game->nbr_win = 4;

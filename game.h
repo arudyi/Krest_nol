@@ -3,6 +3,8 @@
 # include <stdio.h>
 # include <stdlib.h>
 # include <time.h>
+# include <string.h>
+
 typedef struct		s_krest
 {
     short int       player_or_bot;// 1 = player // 0 = bot
