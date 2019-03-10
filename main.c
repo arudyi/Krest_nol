@@ -1,37 +1,6 @@
 #include "game.h"
 #include <unistd.h>
 
-/*int ft_exit_error(void)
-{
-    printf("usage:\n");
-    printf("./exe x y\n");
-    return (0);
-}*/
-
-void ft_map_to_screen(t_elem *s_game)
-{
-    int i;
-    int j;
-
-    if (s_game->logic->pve_or_eve == 0)
-        usleep(1000000); // sleep(1);
-    i = 0;
-    printf("  ");
-    while (++i <= s_game->width)
-        printf("%d ", i);
-    printf("X\n");
-    i = -1;
-    while (++i < s_game->width)
-    {
-        j = -1;
-        printf("%d ", i + 1);
-        while (++j < s_game->height)
-            printf("%c ", s_game->map[i][j]);
-        printf("\n");
-    }
-    printf("Y\n");
-}
-
 int  ft_get_map(t_elem *s_game, int i, int j)
 {
     s_game->map = (char**)malloc(sizeof(char *) * s_game->width);
@@ -352,16 +321,14 @@ int ft_check_every_pos(t_elem *s_game, int i, int j)
         (s_game->krest->win == 0) ? printf("nol is winner !\n") : printf("krest is winner !\n");
         exit(1);
     }
-    else if (s_game->empty_cell == 1)
-    {
-        printf("\ndraw :(\n");
-        exit(1);
-    } 
     return (0);
 }
 
 int ft_check_if_win(t_elem *s_game, int i, int j)
 {
+    short int is_dot;
+
+    is_dot = 0;
     while (++i < s_game->width)
     {
         j = -1;
@@ -372,7 +339,14 @@ int ft_check_if_win(t_elem *s_game, int i, int j)
                 s_game->logic->sym_now = s_game->map[i][j];
                 ft_check_every_pos(s_game, i, j);
             }
+            if (s_game->map[i][j] == '.')
+                is_dot++;
         }
+    }
+    if (is_dot == 0)
+    {
+        printf("\ndraw :(\n");
+        exit(1);
     }
     return (0);
 }
@@ -934,8 +908,6 @@ int find_gor(t_elem *s_game, int i, int j)
             ft_check_if_win_smaller(s_game, max, i, j, 0);
         if (max == 2 && is_dot >= 2)
             ft_check_if_win_smaller(s_game, max, i, j, 0);
-        //if (max == 3 && is_dot >= 3)
-            //ft_check_if_win_smaller(s_game, max, i, j, 0);
     }
     return (0);
 }
@@ -985,8 +957,6 @@ int find_ver(t_elem *s_game, int i, int j)
             ft_check_if_win_smaller(s_game, max, i, j, 1);
         if (max == 2 && is_dot >= 2)
             ft_check_if_win_smaller(s_game, max, i, j, 1);
-        //if (max == 3 && is_dot >= 3)
-          //  ft_check_if_win_smaller(s_game, max, i, j, 1);
     }
     return (0);
 }
@@ -1148,7 +1118,11 @@ int ft_bot_interrupt_gor(t_elem *s_game, int i, int j)
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
-        if ((j + k) < s_game->width && s_game->map[i][j + k] == '.')
+        if ((j + k) >= s_game->width)
+            searching_right = 0;
+        if ((j - k) < 0)
+            searching_left = 0;
+        if (searching_right == 1 && s_game->map[i][j + k] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i][j + k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1156,7 +1130,7 @@ int ft_bot_interrupt_gor(t_elem *s_game, int i, int j)
                 s_game->map[i][j + k] = s_game->logic->sym_now;
             break ;
         }
-        if ((j - k) >= 0 && s_game->map[i][j - k] == '.')
+        if (searching_left == 1 && s_game->map[i][j - k] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i][j - k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1185,7 +1159,11 @@ int ft_bot_interrupt_ver(t_elem *s_game, int i, int j)
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
-        if ((i + k) < s_game->width && s_game->map[i + k][j] == '.')
+        if ((i + k) >= s_game->width)
+            searching_right = 0;
+        if ((i - k) < 0)
+            searching_left = 0;
+        if (searching_right == 1 && s_game->map[i + k][j] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i + k][j] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1193,7 +1171,7 @@ int ft_bot_interrupt_ver(t_elem *s_game, int i, int j)
                 s_game->map[i + k][j] = s_game->logic->sym_now;
             break ;
         }
-        if ((i - k) >= 0 && s_game->map[i - k][j] == '.')
+        if (searching_left == 1 && s_game->map[i - k][j] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i - k][j] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1222,7 +1200,11 @@ int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j)
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
-        if ((i + k) < s_game->width && (j + k) < s_game->width && s_game->map[i + k][j + k] == '.')
+        if ((j + k) >= s_game->width || (i + k) >= s_game->width)
+            searching_right = 0;
+        if ((j - k) < 0 || (i - k) < 0)
+            searching_left = 0;
+        if (searching_right == 1 && s_game->map[i + k][j + k] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i + k][j + k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1230,7 +1212,7 @@ int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j)
                 s_game->map[i + k][j + k] = s_game->logic->sym_now;
             break ;
         }
-        if ((i - k) >= 0 && (j - k) >= 0 && s_game->map[i - k][j - k] == '.')
+        if (searching_left == 1 && s_game->map[i - k][j - k] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i - k][j - k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1259,7 +1241,11 @@ int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j)
     while (searching_left == 1 || searching_right == 1)
     {
         k++;
-        if ((i - k) >= 0 && (j + k) < s_game->width && s_game->map[i - k][j + k] == '.')
+        if ((j + k) >= s_game->width || (i - k) < 0)
+            searching_right = 0;
+        if ((i + k) >= s_game->width || (j - k) < 0)
+            searching_left = 0;
+        if (searching_right == 1 && s_game->map[i - k][j + k] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i - k][j + k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1267,7 +1253,7 @@ int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j)
                 s_game->map[i - k][j + k] = s_game->logic->sym_now;
             break ;
         }
-        if ((i + k) < s_game->width && (j - k) >= 0 && s_game->map[i + k][j - k] == '.')
+        if (searching_left == 1 && s_game->map[i + k][j - k] == '.')
         {
             if (s_game->logic->bot_mode == 0)
                 s_game->map[i + k][j - k] = (s_game->logic->sym_now == 'O') ? 'X' : 'O';
@@ -1347,12 +1333,14 @@ int ft_bot_find_player_best_put(t_elem *s_game)
     //printf("s_game->krest->max_to_win = %d, s_game->nol->max_to_win = %d\n",s_game->krest->max_to_win, s_game->nol->max_to_win);
     if (max_player < max_bot)
     {
+        //printf("bot_interrupt\n");
         s_game->logic->bot_mode = 0;
         ft_bot_interrupt_player(s_game);
         s_game->logic->move = 1;
     }
     if (s_game->logic->move == 0 && max_bot < 3)
     {
+        //printf("bot_player\n");
         s_game->logic->bot_mode = 1;
         ft_player_interrupt(s_game);
         s_game->logic->move = 1;
@@ -1603,23 +1591,19 @@ int ft_get_pos_bot(t_elem *s_game)
     s_game->logic->bot_search_pla_pos = 0;
     if (s_game->logic->move == 0)
     {
-        printf("HI 1\n");
         ft_bot_can_win(s_game, -1, -1);
     }
     s_game->logic->bot_search_pla_pos = 1;
     if (s_game->logic->move == 0)
     {
-        printf("HI 2\n");
         ft_bot_player_cant_win(s_game, -1, -1);
     }
     if (s_game->logic->move == 0)
     {
-        printf("HI 3\n");
         ft_bot_find_player_best_put(s_game);
     }
     if (s_game->logic->move == 0)
     {
-        printf("HI 4\n");
         ft_bot_last_move(s_game, -1, -1);
     }
     return (0);
@@ -1633,11 +1617,47 @@ int ft_move_bot(t_elem *s_game)
     return (0);
 }
 
+void ft_first_bot_move(t_elem *s_game, int i, int j)
+{
+    int move;
+
+    move = 0;
+    s_game->logic->sym_now = (s_game->krest->player_or_bot == 1) ? s_game->krest->sym : s_game->nol->sym;
+    while (++i < s_game->width)
+    {
+        j = -1;
+        while (++j < s_game->width)
+        {
+            if (s_game->map[i][j] == s_game->logic->sym_now)
+            {
+                s_game->logic->sym_now = (s_game->logic->sym_now == s_game->krest->sym) ? s_game->nol->sym : s_game->krest->sym;
+                if (s_game->map[i][j + 1] == '.')
+                    s_game->map[i][j + 1] = s_game->logic->sym_now;
+                else if (s_game->map[i][j - 1] == '.')
+                    s_game->map[i][j - 1] = s_game->logic->sym_now;
+                else if (s_game->map[i + 1][j] == '.')
+                    s_game->map[i + 1][j] = s_game->logic->sym_now;
+                else if (s_game->map[i - 1][j] == '.')
+                    s_game->map[i - 1][j] = s_game->logic->sym_now;
+                move = 1;
+                break ;
+            }
+            if (move == 1)
+                break ;
+        }
+        if (move == 1)
+            break ;
+    }
+    ft_map_to_screen(s_game);
+}
+
 int ft_start_game(t_elem *s_game)
 {
+    short int move;
+
+    move = 0;
     ft_first_move(s_game);
     s_game->run_game = 1;
-    //printf("s_game->logic->who_first = %d\n", s_game->logic->who_first);
     while (s_game->run_game && s_game->logic->pve_or_eve == 1)
     {
         if (s_game->logic->who_first == 1)
@@ -1647,27 +1667,145 @@ int ft_start_game(t_elem *s_game)
         }
         else
         {
-            ft_move_bot(s_game);
+            if (move++ == 0)
+                ft_first_bot_move(s_game, -1, -1);
+            else
+                ft_move_bot(s_game);
             ft_move_player(s_game);
         }
     }
     while (s_game->run_game && s_game->logic->pve_or_eve == 0)
     {
-        if (s_game->logic->who_first == 1)
+        if (s_game->krest->player_or_bot = 1)
         {
-            ft_move_bot(s_game);
+            printf("HI X\n");
+            s_game->krest->player_or_bot = 0;
+            s_game->nol->player_or_bot = 1;
+            if (move++ == 0)
+                ft_first_bot_move(s_game, -1, -1);
+            else
+                ft_move_bot(s_game);
+            s_game->krest->player_or_bot = 1;
+            s_game->nol->player_or_bot = 0;
             ft_move_bot(s_game);
         }
-        else
+        else //(s_game->nol->player_or_bot = 1)
         {
-            ft_move_bot(s_game);
+            printf("HI O\n");
+            s_game->nol->player_or_bot = 0;
+            s_game->krest->player_or_bot = 1;
+            if (move++ == 0)
+                ft_first_bot_move(s_game, -1, -1);
+            else
+                ft_move_bot(s_game);
+            s_game->nol->player_or_bot = 1;
+            s_game->krest->player_or_bot = 0;
             ft_move_bot(s_game);
         }
     }
     return (0);
 }
 
-int main(void)
+void ft_exit_error(void)
+{
+    printf("usage: ./exe pve or eve size x size y\n");
+    printf("example: ./game pve 8 8\n");
+    exit(0);
+}
+
+int ft_validate_size_xy_input(t_elem *s_game, char *str, int i)
+{
+    int nbr;
+
+    nbr = 0;
+    while (str[++i])
+    {
+        if (48 <= str[i] && str[i] <= 57)
+            nbr = nbr * 10 + (str[i] - '0');
+        else
+            ft_exit_error();
+    }
+    if (nbr < 3)
+    {
+        printf("Error: Size is too small. Please select from 3 to 19\n");
+        exit(0);
+    }
+    if (nbr > 19)
+    {
+        printf("Error: Size is too big. Please select from 3 to 19\n");
+        exit(0);
+    }
+    return (nbr);
+}
+
+void ft_validate(t_elem *s_game, int ac, char **av)
+{
+    short int i;
+    short int j;
+
+    i = -1;
+    j = -1;
+    if (ac != 4)
+        ft_exit_error();
+    if (strcmp(av[1], "pve") != 0 && strcmp(av[1], "eve") != 0)
+        ft_exit_error();
+    if (strcmp(av[1], "pve") == 0)
+        s_game->logic->pve_or_eve = 1; // pve = 0 // eve = 1
+    else
+        s_game->logic->pve_or_eve = 0;
+    s_game->width = ft_validate_size_xy_input(s_game, av[2], -1);
+    s_game->height = ft_validate_size_xy_input(s_game, av[3], -1);
+    if (s_game->width != s_game->height)
+    {
+        printf("Error: width is not equal to height\n");
+        exit(0);
+    }
+    if (3 <= s_game->width && s_game->width <= 7)
+        s_game->nbr_win = 3;
+    if (8 <= s_game->width && s_game->width <= 14)
+        s_game->nbr_win = 4;
+    if (15 <= s_game->width && s_game->width <= 19)
+        s_game->nbr_win = 5;
+    printf("In this case you must to form an unbroken chain of %d symbols to win. Good luck!\n", s_game->nbr_win);
+    s_game->krest->win = 0;
+    s_game->nol->win = 0;
+    s_game->empty_cell = 0;
+}
+
+void ft_map_to_screen(t_elem *s_game)
+{
+    int i;
+    int j;
+
+    if (s_game->logic->pve_or_eve == 0)
+        usleep(1000000); // sleep(1);
+    
+    i = 0;
+    printf("   ");
+    while (++i <= s_game->width)
+    {
+        if (i >= 10)
+            printf("%d ", i);
+        else
+            printf("%d  ", i);
+    }
+    printf(" X\n");
+    i = -1;
+    while (++i < s_game->width)
+    {
+        j = -1;
+        if (i + 1 >= 10)
+            printf("%d ", i + 1);
+        else
+            printf("%d  ", i + 1);
+        while (++j < s_game->height)
+            printf("%c  ", s_game->map[i][j]);
+        printf("\n\n");
+    }
+    printf("Y\n");
+}
+
+int main(int ac, char **av)
 {
     srand(time(NULL));
     t_elem *s_game;
@@ -1680,17 +1818,7 @@ int main(void)
         exit(0);
     if (!(s_game->logic = (t_logic_game *)malloc(sizeof(t_logic_game))))
         exit(0);
-    /*if (ac != 3)
-        return (ft_exit_error());*/
-    s_game->logic->pve_or_eve = 1; // pve = 0 // eve = 1
-    s_game->width = 8;
-    s_game->height = 8;
-    s_game->nbr_win = 4;
-    s_game->krest->win = 0;
-    s_game->nol->win = 0;
-    s_game->empty_cell = 0;
-    //    who_first = 1 = bot // who_first = 0 = (player or bot1)
-    //printf("s_game->who_first = %d\n", s_game->who_first);
+    ft_validate(s_game, ac, av);
     ft_get_map(s_game, -1, -1);
     ft_start_game(s_game);
     return (0);

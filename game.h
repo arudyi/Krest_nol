@@ -76,4 +76,5 @@ int ft_bot_interrupt_ver(t_elem *s_game, int i, int j);
 int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j);
 int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j);
 void ft_player_interrupt(t_elem *s_game);
+void ft_map_to_screen(t_elem *s_game);
 #endif
