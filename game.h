@@ -1,10 +1,10 @@
 #ifndef GAME_H
 # define GAME_H
-# include <stdio.h>
-# include <stdlib.h>
-# include <time.h>
-# include <string.h>
-
+# include <cstdio>
+# include <cstdlib>
+# include <ctime>
+# include <string>
+//# include <Windows.h> Sleep(500);
 typedef struct		s_krest
 {
     short int       player_or_bot;// 1 = player // 0 = bot
@@ -58,23 +58,23 @@ typedef struct		s_elem
     t_logic_game *logic;
 }					t_elem;
 
-int ft_validate_input(t_elem *s_game, char *tmp_coor, int i);
-int ft_move_player(t_elem *s_game);
-int ft_move_bot(t_elem *s_game);
-int ft_check_if_win(t_elem *s_game, int i, int j);
-int ft_bot_can_win(t_elem *s_game, int i, int j);
-int ft_check_bot_win(t_elem *s_game, int i, int j);
-int ft_check_bot_player_cant_win(t_elem *s_game, int i, int j);
-int    ft_check_bot_win_gor(t_elem *s_game, int i, int j, int nbr_win);
-int    ft_check_bot_win_ver(t_elem *s_game, int i, int j, int nbr_win);
-int    ft_check_bot_win_dia(t_elem *s_game, int i, int j, int nbr_win);
-int ft_bot_find_player_best_put(t_elem *s_game);
-int ft_bot_last_move(t_elem *s_game, int i, int j);
-int ft_bot_interrupt_player(t_elem *s_game);
-int ft_bot_interrupt_gor(t_elem *s_game, int i, int j);
-int ft_bot_interrupt_ver(t_elem *s_game, int i, int j);
-int ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j);
-int ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j);
-void ft_player_interrupt(t_elem *s_game);
-void ft_map_to_screen(t_elem *s_game);
+int		ft_validate_input(t_elem *s_game, char *tmp_coor, int i);
+void		ft_move_player(t_elem *s_game);
+void	ft_move_bot(t_elem *s_game);
+void		ft_check_if_win(t_elem *s_game, int i, int j);
+void		ft_bot_can_win(t_elem *s_game, int i, int j);
+void		ft_check_bot_win(t_elem *s_game, int i, int j);
+void		ft_check_bot_player_cant_win(t_elem *s_game, int i, int j);
+int		ft_check_bot_win_gor(t_elem *s_game, int i, int j, int nbr_win);
+int		ft_check_bot_win_ver(t_elem *s_game, int i, int j, int nbr_win);
+int		ft_check_bot_win_dia(t_elem *s_game, int i, int j, int nbr_win);
+void		ft_bot_find_player_best_put(t_elem *s_game);
+int		ft_bot_last_move(t_elem *s_game, int i, int j);
+void		ft_bot_interrupt_player(t_elem *s_game);
+void		ft_bot_interrupt_gor(t_elem *s_game, int i, int j);
+void		ft_bot_interrupt_ver(t_elem *s_game, int i, int j);
+void		ft_bot_interrupt_dia_right(t_elem *s_game, int i, int j);
+void		ft_bot_interrupt_dia_left(t_elem *s_game, int i, int j);
+void	ft_player_interrupt(t_elem *s_game);
+void	ft_map_to_screen(t_elem *s_game);
 #endif
